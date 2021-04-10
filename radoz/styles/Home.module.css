@@ -1,0 +1,18 @@
+.container{
+  text-align: center;
+}
+.iframeContainer{
+  border-radius: 10px;
+  border-style: inset;
+  border-width: 15px;
+  border-color: blue;
+}
+.textContainer{
+  margin-left: 100px;
+  padding-left: 100px;
+  margin-bottom: 100px;
+  padding-bottom: 200px;
+}
+.title{
+  margin: auto;
+}
