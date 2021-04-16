@@ -85,7 +85,7 @@ function getAllTags(gameCountMin){
 async function fetchMetaData() {
   let allData = [];
   let morePagesAvailable = true;
-  let total_pages = 35;
+  let total_pages = 20;
   let currentPage = 0;
 
   while(morePagesAvailable) {
@@ -203,26 +203,37 @@ return fetchMetaData();
 
 /* ------------Parsing genres and Tags out of the googleSheets stream --------------*/
 
-function parseGenresAndTags(str){
+function parseGenresAndTags(str, mySet){
   let arr = [];
   let tempStr = "";
   //parses out words using commas as delimiter
   //also removes excess spaces
   for(let i = 0; i < str.length; ++i){
     if(str[i] == ','){
-      tempStr = tempStr.replace(" ","");
-      arr.push(tempStr);
+      //tempStr = tempStr.replace(" ","");
+      if(!mySet.has(tempStr)){
+          arr.push(tempStr);
+      }
+        mySet.add(tempStr);
+        //console.log(mySet);
       tempStr = "";
+      if(str[i + 1] == " "){
+        ++i;
+      }
       continue;
     }
     tempStr += str[i];
   }
-  tempStr = tempStr.replace(" ","");
-  arr.push(tempStr);
+  //tempStr = tempStr.replace(" ","");
+  if(!mySet.has(tempStr)){
+      arr.push(tempStr);
+  }
+    mySet.add(tempStr);
   return arr;
 }
 
 /* -----------------------------------------------------------------------------------*/
 
 
-export { parser, getAllTags, processResults, parseGenresAndTags};
+
+export { parser, getAllTags, processResults, parseGenresAndTags, request};
