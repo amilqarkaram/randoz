@@ -1,48 +1,73 @@
 import axios from 'axios'
-function parser(data){
+
+function parser(data, type) {
   let parse = data;
   let facetMap = new Map();
-  for(let m = 0; m < 5; ++m){
-    let facetScores = parse.substr(parse.indexOf("DOMAIN/Facet"));
-    let newLineCount = 0;
-    let k = 0;
-    while(newLineCount < 8){
-      if(facetScores[k] == '\\' && facetScores[k+1] == 'n'){
-        ++newLineCount;
-      }
-      ++k;
-    }
-    //console.log("k is: " + k);
-    //console.log(parse.substr(parse.indexOf("DOMAIN/Facet"),k));
-    facetScores = facetScores.slice(0,k);
-    let scorArr = [];
-    //console.log(parse);
-    for(let i = 0; i < 6;++i){
-      let facet = facetScores.slice((facetScores.lastIndexOf(".") + 1),facetScores.length - 1);
-      facetScores = facetScores.slice(0,facetScores.lastIndexOf(".") - 1);
-      //console.log("facet: " + facet +"----------------------------")
-      let facetName = "";
-      let facetScore = "";
-      let readWords = true;
-      for(let j = 0; j < facet.length;++j){
-        if(facet.charCodeAt(j) >= 48 && facet.charCodeAt(j) <= 57){
-          facetScore += facet[j];
+  if (type == "full-text") {
+    for (let m = 0; m < 5; ++m) {
+      let facetScores = parse.substr(parse.indexOf("DOMAIN/Facet"));
+      let newLineCount = 0;
+      let k = 0;
+      while (newLineCount < 8) {
+        if (facetScores[k] == '\\' && facetScores[k + 1] == 'n') {
+          ++newLineCount;
         }
-        if(facet.charAt(j) == '\\'){
-          //facetName = facetName.slice(facetName.length-2,facetName.length - 1);
-          readWords = false;
+        ++k;
+      }
+      //console.log("k is: " + k);
+      //console.log(parse.substr(parse.indexOf("DOMAIN/Facet"),k));
+      facetScores = facetScores.slice(0, k);
+      let scorArr = [];
+      //console.log(parse);
+      for (let i = 0; i < 6; ++i) {
+        let facet = facetScores.slice((facetScores.lastIndexOf(".") + 1), facetScores.length - 1);
+        facetScores = facetScores.slice(0, facetScores.lastIndexOf(".") - 1);
+        //console.log("facet: " + facet +"----------------------------")
+        let facetName = "";
+        let facetScore = "";
+        let readWords = true;
+        for (let j = 0; j < facet.length; ++j) {
+          if (facet.charCodeAt(j) >= 48 && facet.charCodeAt(j) <= 57) {
+            facetScore += facet[j];
+          }
+          if (facet.charAt(j) == '\\') {
+            //facetName = facetName.slice(facetName.length-2,facetName.length - 1);
+            readWords = false;
+          }
+          if (readWords) {
+            //console.log("hello " + facet[j]);
+            facetName += facet[j];
+          }
         }
-        if(readWords){
-          //console.log("hello " + facet[j]);
-        facetName += facet[j];
+        facetMap.set(facetName, facetScore);
+        console.log("facet Name: " + facetName);
+        console.log("facet Score: " + facetScore);
       }
-      }
-      facetMap.set(facetName,facetScore);
-      console.log("facet Name: " + facetName);
-      console.log("facet Score: " + facetScore);
+      parse = parse.slice(parse.indexOf("DOMAIN/Facet") + k);
+      console.log("new Parse:-------------------------------------");
     }
-    parse = parse.slice(parse.indexOf("DOMAIN/Facet")+k);
-    console.log("new Parse:-------------------------------------");
+  } else if (type == "post-form") {
+    let readOn = false;
+    let tempString = "";
+    for (let i = 0; i < parse.length; ++i) {
+      if (parse[i] == '.') {
+        readOn = true;
+        ++i;
+        continue;
+      }
+      if (readOn && (parse.charCodeAt(i) > 47 && parse.charCodeAt(i) < 58)) {
+        let facetScore = String(parse.charAt(i));
+        if (parse[i + 1] && (parse.charCodeAt(i + 1) > 47 && parse.charCodeAt(i + 1) < 58)) {
+          facetScore += String(parse.charAt(i + 1))
+        }
+        facetMap.set(tempString, facetScore);
+        tempString = "";
+        readOn = false;
+      } else if (readOn) {
+        tempString += parse[i];
+      }
+
+    }
   }
   return facetMap;
 }
@@ -50,174 +75,172 @@ function parser(data){
 
 /* -----------------------HELPER: handles an axios request based on options Helper-----------------------*/
 
-function request(options){
-return new Promise((resolve,reject)=>{
-  axios.request(options).then(function (response) {
-    let str = "";
-    for(let i = 0; i < response.data.results.length;++i){
+function request(options) {
+  return new Promise((resolve, reject) => {
+    axios.request(options).then(function(response) {
+      let str = "";
+      for (let i = 0; i < response.data.results.length; ++i) {
         str += response.data.results[i].name;
         str += "\n";
-    }
-    //console.log(str);
-    resolve(response);
-  }).catch(function(error){
-    console.log("error: " + error);
-    resolve(error);
+      }
+      //console.log(str);
+      resolve(response);
+    }).catch(function(error) {
+      console.log("error: " + error);
+      resolve(error);
+    });
   });
-});
 }
 
 /* --------------------------------------------------------------------------------------------*/
 
 /* -----------------------------------------Get all Tags Driver--------------------------------*/
 
-function getAllTags(gameCountMin){
-  var options = function(pageNumber){
-  return {
-  method: 'GET',
-  url: `https://rawg-video-games-database.p.rapidapi.com/tags?page_size=6000&page=${pageNumber}`,
-  headers: {
-    'x-rapidapi-key': '388c8cb1b0mshf709e0bbd1b0095p15acf2jsnf1bd7be0e38f',
-    'x-rapidapi-host': 'rawg-video-games-database.p.rapidapi.com'
-  }
-}
-}
-async function fetchMetaData() {
-  let allData = [];
-  let morePagesAvailable = true;
-  let total_pages = 20;
-  let currentPage = 0;
-
-  while(morePagesAvailable) {
-    currentPage++;
-    const response = await (options(currentPage))
-    console.log("currentPage: " + currentPage);
-    if(response instanceof Error){
-      console.log("end");
-      return allData;
-    }
-    let data = await response.data.results;
-    if(!data){
-      break;
-    }
-    else{
-        data.forEach(function(e){
-        if(e.games_count>gameCountMin){
-        console.log("game count: "+ e.games_count);
-        console.log("tage: " + e.name);
-        allData.unshift(e.name)
+function getAllTags(gameCountMin) {
+  var options = function(pageNumber) {
+    return {
+      method: 'GET',
+      url: `https://rawg-video-games-database.p.rapidapi.com/tags?page_size=6000&page=${pageNumber}`,
+      headers: {
+        'x-rapidapi-key': '388c8cb1b0mshf709e0bbd1b0095p15acf2jsnf1bd7be0e38f',
+        'x-rapidapi-host': 'rawg-video-games-database.p.rapidapi.com'
       }
-      } );
     }
-    morePagesAvailable = currentPage < total_pages;
   }
+  async function fetchMetaData() {
+    let allData = [];
+    let morePagesAvailable = true;
+    let total_pages = 20;
+    let currentPage = 0;
 
-  return allData;
-}
-return fetchMetaData();
+    while (morePagesAvailable) {
+      currentPage++;
+      const response = await (options(currentPage))
+      console.log("currentPage: " + currentPage);
+      if (response instanceof Error) {
+        console.log("end");
+        return allData;
+      }
+      let data = await response.data.results;
+      if (!data) {
+        break;
+      } else {
+        data.forEach(function(e) {
+          if (e.games_count > gameCountMin) {
+            console.log("game count: " + e.games_count);
+            console.log("tage: " + e.name);
+            allData.unshift(e.name)
+          }
+        });
+      }
+      morePagesAvailable = currentPage < total_pages;
+    }
+
+    return allData;
+  }
+  return fetchMetaData();
 }
 
 /* -----------------------------------------------------------------------------------*/
 
 /*------------------------------------HELPER: Result processing, calcluate weights---------------------------*/
 
-function calculateGameWeight(data,game){
+function calculateGameWeight(data, game) {
   let weightCalculation = 0;
   let count = 0;
   //staring with genres, begins to calculate totalweight as each genre is associated with a weight
-  for(let i = 0; i < game.genres.length;++i){
-    if(data.hasOwnProperty(game.genres[i].name)){
+  for (let i = 0; i < game.genres.length; ++i) {
+    if (data.hasOwnProperty(game.genres[i].name)) {
       weightCalculation += Number(data[game.genres[i].name]);
       ++count;
     }
   }
   //next we deal with tags
-  for(let i = 0; i < game.tags.length;++i){
-    if(data.hasOwnProperty(game.tags[i].name)){
+  for (let i = 0; i < game.tags.length; ++i) {
+    if (data.hasOwnProperty(game.tags[i].name)) {
       weightCalculation += Number(data[game.tags[i].name]);
       ++count;
     }
   }
-  if(count == 0){
+  if (count == 0) {
     count = 1;
   }
-  weightCalculation = weightCalculation/count;
+  weightCalculation = weightCalculation / count;
   return weightCalculation;
 }
 /* -----------------------------------------------------------------------------------*/
 
 /* -----------------------Go through every game and assign a weight--------------------------- */
 
-function processResults(weightMap){
+function processResults(weightMap) {
   let personalizedGames = [];
   let personalizedGame;
-  var options = function(pageNumber){
-  return {
-  method: 'GET',
-  url: `https://rawg-video-games-database.p.rapidapi.com/games?ordering=-metacritic&page_size=6000&page=${pageNumber}`,
-  headers: {
-    'x-rapidapi-key': '388c8cb1b0mshf709e0bbd1b0095p15acf2jsnf1bd7be0e38f',
-    'x-rapidapi-host': 'rawg-video-games-database.p.rapidapi.com'
+  var options = function(pageNumber) {
+    return {
+      method: 'GET',
+      url: `https://rawg-video-games-database.p.rapidapi.com/games?ordering=-metacritic&page_size=6000&page=${pageNumber}`,
+      headers: {
+        'x-rapidapi-key': '388c8cb1b0mshf709e0bbd1b0095p15acf2jsnf1bd7be0e38f',
+        'x-rapidapi-host': 'rawg-video-games-database.p.rapidapi.com'
+      }
+    }
   }
-}
-}
-async function fetchMetaData() {
-  let allData = [];
-  let morePagesAvailable = true;
-  let total_pages = 20;
-  let currentPage = 0;
+  async function fetchMetaData() {
+    let allData = [];
+    let morePagesAvailable = true;
+    let total_pages = 20;
+    let currentPage = 0;
 
-  while(morePagesAvailable) {
-    currentPage++;
-    const response = await request(options(currentPage))
-    //console.log("currentPage: " + currentPage);
-    if(response instanceof Error){
-      console.log("end");
-      return allData;
-    }
-    let data = await response.data.results;
-    if(!data){
-      break;
-    }
-    else{
-        data.forEach(function(e){
+    while (morePagesAvailable) {
+      currentPage++;
+      const response = await request(options(currentPage))
+      //console.log("currentPage: " + currentPage);
+      if (response instanceof Error) {
+        console.log("end");
+        return allData;
+      }
+      let data = await response.data.results;
+      if (!data) {
+        break;
+      } else {
+        data.forEach(function(e) {
           personalizedGame = {
             name: e.name,
             id: e.id,
-            weight: calculateGameWeight(weightMap,e)
+            weight: calculateGameWeight(weightMap, e)
           }
           //console.log(e.name);
           //console.log(personalizedGame);
           allData.unshift(personalizedGame);
-      } );
+        });
+      }
+      morePagesAvailable = currentPage < total_pages;
     }
-    morePagesAvailable = currentPage < total_pages;
-  }
 
-  return allData;
-}
-return fetchMetaData();
+    return allData;
+  }
+  return fetchMetaData();
 }
 
 /* -----------------------------------------------------------------------------------*/
 
 /* ------------Parsing genres and Tags out of the googleSheets stream --------------*/
 
-function parseGenresAndTags(str, mySet){
+function parseGenresAndTags(str, mySet) {
   let arr = [];
   let tempStr = "";
   //parses out words using commas as delimiter
   //also removes excess spaces
-  for(let i = 0; i < str.length; ++i){
-    if(str[i] == ','){
+  for (let i = 0; i < str.length; ++i) {
+    if (str[i] == ',') {
       //tempStr = tempStr.replace(" ","");
-      if(!mySet.has(tempStr)){
-          arr.push(tempStr);
+      if (!mySet.has(tempStr)) {
+        arr.push(tempStr);
       }
-        mySet.add(tempStr);
-        //console.log(mySet);
+      mySet.add(tempStr);
+      //console.log(mySet);
       tempStr = "";
-      if(str[i + 1] == " "){
+      if (str[i + 1] == " ") {
         ++i;
       }
       continue;
@@ -225,10 +248,10 @@ function parseGenresAndTags(str, mySet){
     tempStr += str[i];
   }
   //tempStr = tempStr.replace(" ","");
-  if(!mySet.has(tempStr)){
-      arr.push(tempStr);
+  if (!mySet.has(tempStr)) {
+    arr.push(tempStr);
   }
-    mySet.add(tempStr);
+  mySet.add(tempStr);
   return arr;
 }
 
@@ -236,4 +259,10 @@ function parseGenresAndTags(str, mySet){
 
 
 
-export { parser, getAllTags, processResults, parseGenresAndTags, request};
+export {
+  parser,
+  getAllTags,
+  processResults,
+  parseGenresAndTags,
+  request
+};

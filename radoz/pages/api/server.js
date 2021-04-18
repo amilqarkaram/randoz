@@ -4,17 +4,28 @@ const app = express();
 const bodyparser = require("body-parser");
 const cors = require("cors");
 const axios = require("axios");
-const util  = require("util");
+const request = require("request");
+const cheerio = require("cheerio")
+const util = require("util");
 const process = require('process');
+const FormData = require('form-data')
 const statman = require('statman');
 const stopwatch = new statman.Stopwatch();
 var Heap = require('heap');
 var heap = new Heap(function(a, b) {
-    return b.weight - a.weight;
+  return b.sum - a.sum;
 });
-import {parser, getAllTags, processResults, parseGenresAndTags} from '../../utils/utils.js'
+import {
+  parser,
+  getAllTags,
+  processResults,
+  parseGenresAndTags
+} from '../../utils/utils.js'
 const mongoose = require("mongoose");
-mongoose.connect("mongodb+srv://admin-amilqar:123hurBnomC@cluster0.rmpoy.mongodb.net/videoGameDB", {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect("mongodb+srv://admin-amilqar:123hurBnomC@cluster0.rmpoy.mongodb.net/videoGameDB", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 const userGamesSchema = {
   name: String,
   games: [Object]
@@ -39,44 +50,49 @@ try {
   games = mongoose.model('games', GamesSchema)
 }
 let facetMap;
-function dbQuery(searchQuery, queryArr, type){
-//  for(let i = 0; i < genres.length;++i){
-//console.log(queryArr);
-let query = "";
-  if(type == "genres"){
-    query = {"genres.name": searchQuery}
-  }
-  else if(type == "tags"){
-    query = {"tags.name": searchQuery}
+
+function dbQuery(searchQuery, queryArr, type) {
+  //  for(let i = 0; i < genres.length;++i){
+  //console.log(queryArr);
+  let query = "";
+  if (type == "genres") {
+    query = {
+      "genres.name": searchQuery
+    }
+  } else if (type == "tags") {
+    query = {
+      "tags.name": searchQuery
+    }
   }
   //console.log("type: " + type);
-    return new Promise(function(resolve,reject){
-      games.find(query,function(err,docArr){
-        if(err){console.log(err)}
-        else{
-          const memory = process.memoryUsage();
-          console.log((memory.heapUsed / 1024 / 1024 / 1024).toFixed(4), 'GB');
-          console.log("there were " + docArr.length + " documents with " + searchQuery + " as a " + type);
-          resolve(docArr);
-        }
-      }).lean().select("name");
-    });
-//  }
+  return new Promise(function(resolve, reject) {
+    games.find(query, function(err, docArr) {
+      if (err) {
+        console.log(err)
+      } else {
+        const memory = process.memoryUsage();
+        console.log((memory.heapUsed / 1024 / 1024 / 1024).toFixed(4), 'GB');
+        console.log("there were " + docArr.length + " documents with " + searchQuery + " as a " + type);
+        resolve(docArr);
+      }
+    }).lean().select("name");
+  });
+  //  }
 }
-function processDbResults(values, labels, weightMap){
+
+function processDbResults(values, labels, weightMap) {
   let newMap = {}
   let namesArr = [];
-  for(let i = 0; i < values.length; ++i){
-    for(let j = 0; j < values[i].length; ++j){
-      if(!newMap.hasOwnProperty(values[i][j].name)){
+  for (let i = 0; i < values.length; ++i) {
+    for (let j = 0; j < values[i].length; ++j) {
+      if (!newMap.hasOwnProperty(values[i][j].name)) {
         newMap[values[i][j].name] = {
           name: values[i][j].name,
           sum: Number(weightMap[labels[i]]),
           count: 1
         }
         namesArr.push(values[i][j].name);
-      }
-      else{
+      } else {
         ++newMap[values[i][j].name].count;
         newMap[values[i][j].name].sum += Number(weightMap[labels[i]]);
       }
@@ -90,50 +106,88 @@ function processDbResults(values, labels, weightMap){
 app.use(cors());
 app.use(bodyparser.json());
 
-app.get("/api/server/",function(req,res){
-//getAllTags(3000).then((response) => res.send(response));
-var options = function(pageNumber){
-return {
-method: 'GET',
-url: `https://rawg-video-games-database.p.rapidapi.com/games?page_size=6000&page=${pageNumber}`,
-headers: {
-  'x-rapidapi-key': '388c8cb1b0mshf709e0bbd1b0095p15acf2jsnf1bd7be0e38f',
-  'x-rapidapi-host': 'rawg-video-games-database.p.rapidapi.com'
-}
-}
-}
-//axios.request(options(1)).then(function(response){res.send(response.data)})
-// var heap = new Heap(function(a, b) {
-//   return b.weight - a.weight;
-// });
-// userGames.findOne({name: "nick"},function(err, doc){
-//   if(err){console.log('there was an error in search for the query')}
-//   else{
-//     for(let i = 0; i < doc.games.length;++i){
-//       heap.push(doc.games[i]);
-//     }
-//     let arr = [];
-//     for(let i =0; i < 3; ++i){
-//       arr.push(heap.peek());
-//       heap.pop();
-//     }
-//     res.json(arr);
-//   }
-// });
-console.log("helloooo");
-let tempArr = [];
-for(let i = 0; i < 3; ++i){
-  tempArr.push(heap.peek());
-  heap.pop();
-}
-res.json(tempArr);
+app.get("/api/server", function(req, res) {
+  let tempArr = [];
+  for (let i = 0; i < 3; ++i) {
+    tempArr.push(heap.peek());
+    heap.pop();
+  }
+  res.json(tempArr);
 })
-app.post("/api/server",function(req, res){
+app.post("/api/server/", function(req, res) {
   //console.log("request data: "+ JSON.stringify(req.body));
-  //let data = JSON.stringify(req.body)
-//  console.log(JSON.parse(req.body);
-//let jsonObject = new JSONObject(req.body);
-  console.log(req.body);
+  let data = JSON.parse(JSON.stringify(req.body))
+  console.log(data)
+  var options = {
+    'method': 'POST',
+    'url': 'http://www.personal.psu.edu/cgi-bin/users/j/5/j5j/IPIP/shortipipneo3.cgi',
+    'headers': {},
+    formData: data
+  };
+  request(options, function(error, response) {
+    if (error) throw new Error(error);
+    console.log(response.body);
+    const $ = cheerio.load(response.body);
+    console.log(cheerio.text($('tr')))
+    let facetText = cheerio.text($('tr'));
+    let facetMap = parser(facetText, "post-form");
+    console.log(facetMap);
+    let weightMap = {};
+    axios.get("https://spreadsheets.google.com/feeds/list/1SdwGJ4aU3t7f28OXfQWCTN5tMwT98XWqbT0C6CSqxXY/od6/public/values?alt=json")
+      .then(function(response) {
+        console.log("feedLegnth: " + response.data.feed.entry.length)
+        var genresArr = [];
+        var tagsArr = [];
+        let myGenresSet = new Set([]);
+        let myTagsSet = new Set([]);
+        for (let i = 0; i < response.data.feed.entry.length; ++i) {
+          let tempGenresArr = parseGenresAndTags(response.data.feed.entry[i]['gsx$genres']['$t'], myGenresSet);
+          for (let j = 0; j < tempGenresArr.length; ++j) {
+            console.log(facetMap.get(response.data.feed.entry[i]['gsx$facets']['$t']));
+            weightMap[tempGenresArr[j]] = facetMap.get(response.data.feed.entry[i]['gsx$facets']['$t']);
+          }
+          genresArr = genresArr.concat(tempGenresArr);
 
+          let tempTagsArr = parseGenresAndTags(response.data.feed.entry[i]['gsx$tags']['$t'], myTagsSet);
+          for (let j = 0; j < tempTagsArr.length; ++j) {
+            weightMap[tempTagsArr[j]] = facetMap.get(response.data.feed.entry[i]['gsx$facets']['$t']);
+          }
+          tagsArr = tagsArr.concat(tempTagsArr);
+        }
+        console.log(weightMap);
+        stopwatch.start();
+        let promiseArr = [];
+        let promiseArrLabels = [];
+        let queryArr = [];
+        console.log(genresArr);
+        console.log(tagsArr);
+        console.log("genres length: " + genresArr.length);
+        for (let i = 0; i < tagsArr.length; ++i) {
+          promiseArr.push(dbQuery(tagsArr[i], queryArr, "tags"))
+          promiseArrLabels.push(tagsArr[i]);
+        }
+
+        Promise.all(promiseArr).then((values) => {
+          //console.log(values);
+          console.log(stopwatch.read());
+          stopwatch.stop();
+          stopwatch.start();
+          const [gameNames, gameMap] = processDbResults(values, promiseArrLabels, weightMap);
+          let set = new Set();
+          for (let i = 0; i < gameNames.length; ++i) {
+            gameMap[gameNames[i]]["weight"] = (gameMap[gameNames[i]].sum) / gameMap[gameNames[i]].count
+            heap.push(gameMap[gameNames[i]]);
+          }
+          let sendArr = [];
+          for (let i = 0; i < 10; ++i) {
+            sendArr.push(heap.peek());
+            heap.pop();
+          }
+          console.log(stopwatch.read())
+          res.json(sendArr);
+          stopwatch.stop()
+        });
+      });
+  });
 });
 export default app;

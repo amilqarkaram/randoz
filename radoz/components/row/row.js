@@ -2,12 +2,15 @@ import React from "react";
 import styles from '../../styles/Quiz.module.css'
 import { useState } from "react";
 export default function Row(props) {
-  const [checked, setChecked] = useState(false);
+  const [isRadioClicked, setRadioClick] = useState(false);
   return (
+    <div>
     <tr>
-      <th>Question #</th>
-      <th>{props.content}</th>
+    <th className={styles.qContent}>{props.questionNumber + ". " + props.content}</th>
+    </tr>
+    <tr className={styles.row}>
       <td className="MC">
+      <div className={styles.tableData}>
         <p>Very<br />Innaccurate</p>
         <input
           type="radio"
@@ -16,19 +19,27 @@ export default function Row(props) {
           value="1"
           className= {styles.MC}
         />
+        <span className={styles.buttonStyle}></span>
+        <span className={styles.customRadio}></span>
+        </div>
       </td>
-      <td className="MC">
-        <p>Moderately<br />Accurate</p>
+      <td>
+      <div className={styles.tableData}>
+        <p>Moderately<br />Innaccurate</p>
         <input
           type="radio"
           name={props.groupName}
-          onClick={props.handleRadioClick}
           value="2"
           className={styles.MC}
+          onClick={props.handleRadioClick}
         />
+        <span className={styles.buttonStyle}></span>
+        <span className={styles.customRadio}></span>
+        </div>
       </td>
       <td className="MC">
-        <p>Neither Accurate<br />Nor Innaccurate</p>
+      <div className={styles.tableData}>
+        <p>Neither<br />Option</p>
         <input
           type="radio"
           name={props.groupName}
@@ -36,8 +47,12 @@ export default function Row(props) {
           value="3"
           className={styles.MC}
         />
+        <span className={styles.buttonStyle}></span>
+        <span className={styles.customRadio}></span>
+        </div>
       </td>
       <td className="MC">
+      <div className={styles.tableData}>
         <p>Moderately<br />Accurate</p>
         <input
           type="radio"
@@ -46,8 +61,12 @@ export default function Row(props) {
           value="4"
           className={styles.MC}
         />
+        <span className={styles.buttonStyle}></span>
+        <span className={styles.customRadio}></span>
+        </div>
       </td>
       <td className="MC">
+      <div className={styles.tableData}>
         <p>Very<br />Accurate</p>
         <input
           type="radio"
@@ -56,7 +75,11 @@ export default function Row(props) {
           value="5"
           className={styles.MC}
         />
+        <span className={styles.buttonStyle}></span>
+        <span className={styles.customRadio}></span>
+        </div>
       </td>
     </tr>
+    </div>
   );
 }

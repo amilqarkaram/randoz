@@ -19,12 +19,14 @@ export default function Home(props) {
       method: 'post',
       url: '/api/server',
       data: params
-    });
+    }).then(function(response){
+      console.log(JSON.stringify(response.data));
+    })
   }
   return (
     <div className={styles.container}>
     <h1 className={styles.title}>Video Game Personality Quiz</h1>
-    <Quiz questions={props.questions} handleSubmit={handleSubmit}/>
+    <Quiz countries={props.countries} questions={props.questions} handleSubmit={handleSubmit}/>
     </div>
   )
 }
@@ -52,9 +54,17 @@ export async function getServerSideProps() {
   }
   // By returning { props: { posts } }, the Blog component
   // will receive `posts` as a prop at build time
+  try{
+    var countries = fs.readFileSync("C:/Users/13053/OneDrive/Desktop/Data Structures/randoz/radoz/assets/countries.txt", 'utf8');
+    //console.log(countries)
+  }
+  catch(e){
+    console.log('Error:', e.stack);
+  }
   return {
     props: {
       questions,
+      countries
     },
   }
 }
