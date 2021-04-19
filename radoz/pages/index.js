@@ -34,28 +34,28 @@ export async function getServerSideProps() {
   var questions  =[];
 
   try {
-      var data = fs.readFileSync("C:/Users/13053/OneDrive/Desktop/Data Structures/randoz/radoz/assets/data.txt", 'utf8');
+      var data = fs.readFileSync("/Users/kayleeleger/Online Studies/S2021/Data Structures/Randoz Collab/randoz/radoz/assets/data.txt", 'utf8');
       var questions  = [];
       let tempString = "";
       for(let i = 0; i < data.length; ++i){
-        if(data[i] != '\r'){
+        if(data[i] != '\n'){
         tempString += data[i];
       }
       else{
         questions.push(tempString)
+        console.log()
         tempString = "";
-        ++i;
       }
       }
-      // console.log(data);
-      // console.log(questions)
+      console.log(data);
+      console.log(questions)
   } catch(e) {
       console.log('Error:', e.stack);
   }
   // By returning { props: { posts } }, the Blog component
   // will receive `posts` as a prop at build time
   try{
-    var countries = fs.readFileSync("C:/Users/13053/OneDrive/Desktop/Data Structures/randoz/radoz/assets/countries.txt", 'utf8');
+    var countries = fs.readFileSync("/Users/kayleeleger/Online Studies/S2021/Data Structures/Randoz Collab/randoz/radoz/assets/countries.txt", 'utf8');
     //console.log(countries)
   }
   catch(e){
