@@ -16,6 +16,12 @@ var heap = new Heap(function(a, b) {
   return b.sum - a.sum;
 });
 import {
+  BinarySearchTree,
+  BinarySearchTreeNode,
+  AvlTree,
+  AvlTreeNode
+} from '@datastructures-js/binary-search-tree';
+import {
   parser,
   getAllTags,
   processResults,
@@ -174,17 +180,28 @@ app.post("/api/server/", function(req, res) {
           stopwatch.start();
           const [gameNames, gameMap] = processDbResults(values, promiseArrLabels, weightMap);
           let set = new Set();
+          const avl = new AvlTree();
           for (let i = 0; i < gameNames.length; ++i) {
             gameMap[gameNames[i]]["weight"] = (gameMap[gameNames[i]].sum) / gameMap[gameNames[i]].count
             heap.push(gameMap[gameNames[i]]);
+            //creating an AVL tree to compare to the heap
+            avl.insert(gameMap[gameNames[i]].sum, gameNames[i])
           }
           let sendArr = [];
+          let avlArr = [];
           for (let i = 0; i < 10; ++i) {
+            //using the heap to give user the top values
             sendArr.push(heap.peek());
             heap.pop();
+
+            //using AVL tree to give user top values
+            avlArr.push(avl.max);
+            avl.remove(avl.max);
           }
+          
           console.log(stopwatch.read())
-          res.json(sendArr);
+          //res.json(sendArr);
+          res.json(avlArr)
           stopwatch.stop()
         });
       });
