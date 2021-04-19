@@ -1,0 +1,11 @@
+.box{
+  border: 1px solid black;
+  padding-top: 7%;
+  padding-bottom: 7%;
+  position: absolute;
+  right: 0;
+  left: 0;
+  margin: auto;
+  background-color: #020300;
+  color: white;
+}

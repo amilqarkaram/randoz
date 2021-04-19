@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import TestForm from "../components/testForm/testForm.js"
 import Row from "../components/row/row.js"
 import Quiz from "../components/quiz/quiz.js"
+import Intro from "../components/intro/intro.js"
 import fs from "fs"
 import path from "path"
 //import file from "../assets/data.txt"
@@ -26,11 +27,12 @@ export default function Home(props) {
   return (
     <div className={styles.container}>
     <h1 className={styles.title}>Video Game Personality Quiz</h1>
+    <Intro />
     <Quiz countries={props.countries} questions={props.questions} handleSubmit={handleSubmit}/>
     </div>
   )
 }
-export async function getServerSideProps() {
+export async function getServerSideProps({req, res}) {
   var questions  =[];
 
   try {
