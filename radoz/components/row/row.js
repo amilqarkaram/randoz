@@ -4,9 +4,16 @@ import { useState, useEffect } from "react";
 export default function Row(props) {
   const [isRadioClicked, setRadioClick] = useState({});
   useEffect(function(){
+    let item = JSON.parse(sessionStorage.getItem(props.groupName));
     if(sessionStorage.getItem(props.groupName)){
-      console.log("exists: " + sessionStorage.getItem(props.groupName))
-    setRadioClick(JSON.parse(sessionStorage.getItem(props.groupName)))
+      //console.log("exists: " + sessionStorage.getItem(props.groupName))
+    setRadioClick(item)
+    for ( var key in item ) {
+      if(item[key]){
+        var number = Number(key[1]);
+      }
+    }
+    props.handleRadioClick(props.groupName,number);
   }
   else{
     console.log("doesn't exist")
@@ -46,7 +53,7 @@ export default function Row(props) {
     obj[name] = true;
     setRadioClick(obj);
     sessionStorage.setItem(props.groupName,JSON.stringify(obj));
-    props.handleRadioClick(e);
+    props.handleRadioClick(props.groupName, e.target.value);
   }
   return (
     <div>
@@ -56,7 +63,7 @@ export default function Row(props) {
     <tr className={styles.row}>
       <td className="MC">
       <div className={styles.tableData}>
-        <p>Very<br />Innaccurate</p>
+        <p>Very Innaccurate</p>
         <div className={styles.radioContainer} >
         <input
           type="radio"
@@ -73,7 +80,7 @@ export default function Row(props) {
       </td>
       <td>
       <div className={styles.tableData}>
-        <p>Moderately<br />Innaccurate</p>
+        <p>Moderately Innaccurate</p>
         <div className={styles.radioContainer}>
         <input
           type="radio"
@@ -90,7 +97,7 @@ export default function Row(props) {
       </td>
       <td className="MC">
       <div className={styles.tableData}>
-        <p>Neither<br />Option</p>
+        <p>Neither Option</p>
         <div className={styles.radioContainer}>
         <input
           type="radio"
@@ -107,7 +114,7 @@ export default function Row(props) {
       </td>
       <td className="MC">
       <div className={styles.tableData}>
-        <p>Moderately<br />Accurate</p>
+        <p>Moderately Accurate</p>
         <div className={styles.radioContainer}>
         <input
           type="radio"
@@ -124,7 +131,7 @@ export default function Row(props) {
       </td>
       <td className="MC">
       <div className={styles.tableData}>
-        <p>Very<br />Accurate</p>
+        <p>Very Accurate</p>
         <div className={styles.radioContainer}>
         <input
           type="radio"

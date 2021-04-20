@@ -1,0 +1,25 @@
+.box{
+  border: 1px solid black;
+  padding-top: 21vh;
+  padding-bottom: 21vh;
+  position: absolute;
+  right: 0;
+  left: 0;
+  margin: auto;
+  background-color: #020300;
+  color: white;
+  font-family: 'Press Start 2P', cursive;
+  top:18%;
+  animation-name: move;
+  animation-duration: 4s;
+  animation-iteration-count:1;
+  animation-fill-mode: forwards;
+}
+@keyframes move{
+  0% {top: 18%}
+  100% {
+    top: 0;
+    padding-top: 38.2vh;
+    padding-bottom: 38.2vh;
+  }
+}

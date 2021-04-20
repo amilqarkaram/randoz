@@ -81,7 +81,7 @@ function dbQuery(searchQuery, queryArr, type) {
         console.log("there were " + docArr.length + " documents with " + searchQuery + " as a " + type);
         resolve(docArr);
       }
-    }).lean().select("name");
+    }).lean().select("id");
   });
   //  }
 }
@@ -91,16 +91,16 @@ function processDbResults(values, labels, weightMap) {
   let namesArr = [];
   for (let i = 0; i < values.length; ++i) {
     for (let j = 0; j < values[i].length; ++j) {
-      if (!newMap.hasOwnProperty(values[i][j].name)) {
-        newMap[values[i][j].name] = {
-          name: values[i][j].name,
+      if (!newMap.hasOwnProperty(values[i][j].id)) {
+        newMap[values[i][j].id] = {
+          name: values[i][j].id,
           sum: Number(weightMap[labels[i]]),
           count: 1
         }
-        namesArr.push(values[i][j].name);
+        namesArr.push(values[i][j].id);
       } else {
-        ++newMap[values[i][j].name].count;
-        newMap[values[i][j].name].sum += Number(weightMap[labels[i]]);
+        ++newMap[values[i][j].id].count;
+        newMap[values[i][j].id].sum += Number(weightMap[labels[i]]);
       }
     }
   }
@@ -121,6 +121,12 @@ app.get("/api/server", function(req, res) {
   res.json(tempArr);
 })
 app.post("/api/server/", function(req, res) {
+  // let sendArr = [];
+  //   sendArr.push({name: 16628},{name: 322403},{name: 557077},{name: 21924}, {name: 9891},{name:282914},{name:45265},{name:429004},
+  //   {name: 442872},{name: 11264});
+  //   setTimeout(function(){
+  //       res.json(sendArr);
+  //   },1000);
   //console.log("request data: "+ JSON.stringify(req.body));
   let data = JSON.parse(JSON.stringify(req.body))
   console.log(data)
@@ -161,7 +167,7 @@ app.post("/api/server/", function(req, res) {
           tagsArr = tagsArr.concat(tempTagsArr);
         }
         console.log(weightMap);
-        stopwatch.start();
+        //stopwatch.start();
         let promiseArr = [];
         let promiseArrLabels = [];
         let queryArr = [];
@@ -172,11 +178,15 @@ app.post("/api/server/", function(req, res) {
           promiseArr.push(dbQuery(tagsArr[i], queryArr, "tags"))
           promiseArrLabels.push(tagsArr[i]);
         }
+        for (let i = 0; i < genresArr.length; ++i) {
+          promiseArr.push(dbQuery(genresArr[i], queryArr, "genres"))
+          promiseArrLabels.push(genresArr[i]);
+        }
 
         Promise.all(promiseArr).then((values) => {
           //console.log(values);
-          console.log(stopwatch.read());
-          stopwatch.stop();
+          //console.log(stopwatch.read());
+          //stopwatch.stop();
           stopwatch.start();
           const [gameNames, gameMap] = processDbResults(values, promiseArrLabels, weightMap);
           let set = new Set();
@@ -195,13 +205,13 @@ app.post("/api/server/", function(req, res) {
             heap.pop();
 
             //using AVL tree to give user top values
-            avlArr.push(avl.max);
-            avl.remove(avl.max);
+            // avlArr.push(avl.max().getValue());
+            // avl.remove(avl.max().getKey());
           }
-          
+
           console.log(stopwatch.read())
-          //res.json(sendArr);
-          res.json(avlArr)
+          res.json(sendArr);
+          //res.json(avlArr)
           stopwatch.stop()
         });
       });

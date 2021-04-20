@@ -1,7 +1,8 @@
 .container{
   text-align: center;
-    font-family: "Comic Neue", cursive;
-  background-color:#F9FBF2;
+  font-family: 'Press Start 2P',Arial;
+  background-color:#E7E7E7ff;
+  scroll-behavior: smooth;
 }
 .iframeContainer{
   border-radius: 10px;
@@ -12,9 +13,6 @@
 .textContainer{
   margin-left: 100px;
   margin-bottom: 100px;
-}
-.title{
-  margin: auto;
 }
 .quizTable{
   border: 1px solid black;

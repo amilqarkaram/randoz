@@ -3,7 +3,7 @@ import Row from "../row/row.js"
 import styles from '../../styles/Quiz.module.css'
 import axios from "axios"
 import ReactHtmlParser from 'react-html-parser'
-import { useState, useEffect } from "react"
+import { useState, useEffect,  useRef } from "react"
 //import fs from "fs"
 export default function Quiz({ questions, handleSubmit, countries}){
   const[state, setState] = useState({
@@ -15,7 +15,19 @@ export default function Quiz({ questions, handleSubmit, countries}){
   });
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(6);
+  const topQuizRef = useRef();
   useEffect(function(){
+    for(let i = 0; i < 120; ++i){
+      let key = "Q" + String(i+1);
+      if(sessionStorage.getItem(key)){
+        let choicesObj = JSON.parse(sessionStorage.getItem(key));
+        for(var keyChoice in choicesObj){
+          if(choicesObj[keyChoice]){
+            state.answers[key] = Number(keyChoice[1]);
+          }
+        }
+      }
+    }
     if(sessionStorage.getItem("start") && sessionStorage.getItem("end")){
       console.log("here");
       setStart(Number(sessionStorage.getItem("start")));
@@ -48,6 +60,12 @@ export default function Quiz({ questions, handleSubmit, countries}){
     })
   },[]);
   function handleNext(){
+    if(topQuizRef.current){
+      window.scrollTo({
+        behavior: 'smooth',
+        top: topQuizRef.current.offsetTop
+      })
+    }
       if(end + 6 > questions.length){
         setEnd(questions.length)
         sessionStorage.setItem("end",String(questions.length));
@@ -101,9 +119,9 @@ export default function Quiz({ questions, handleSubmit, countries}){
       }
     })
   }
-  function handleRadioClick(e){
-    let val = e.target.value;
-    let name = e.target.name;
+  function handleRadioClick(_name, _value){
+    let val = _value;
+    let name = _name;
     console.log(state.answers);
     if(name === "Sex"){
         setState(function(currentState){
@@ -115,11 +133,11 @@ export default function Quiz({ questions, handleSubmit, countries}){
         sessionStorage.setItem(name,val);
     }
     else{
-        state.answers[name] = val;
+        state.answers[name] = Number(val);
     }
   }
   return(
-    <form className={styles.personalityForm} autoComplete="off">
+    <form ref={topQuizRef}className={styles.personalityForm} autoComplete="off">
     <div className={styles.background}>
     <div className={styles.formInput}>
       <label htmlFor="name"> Nickname </label>
@@ -131,9 +149,9 @@ export default function Quiz({ questions, handleSubmit, countries}){
     </div>
     <div className={styles.formInput}>
       <label htmlFor="male" > Male </label>
-      <input className={styles.radio} onClick={handleRadioClick} checked={state.Sex=="Male" ? true : false} name="Sex" type="radio" value="Male" id="male" />
+      <input className={styles.radio} onClick={function(e){return handleRadioClick(e.target.name, e.target.value)}} checked={state.Sex=="Male" ? true : false} name="Sex" type="radio" value="Male" id="male" />
       <label htmlFor="female"> Female </label>
-      <input className={styles.radio} onClick={handleRadioClick} checked={state.Sex=="Female" ? true : false} name="Sex" type="radio" value="Female" id="female"/>
+      <input className={styles.radio} onClick={function(e){return handleRadioClick(e.target.name, e.target.value)}} checked={state.Sex=="Female" ? true : false} name="Sex" type="radio" value="Female" id="female"/>
     </div>
     <div className={styles.formInput}>
       <label htmlFor="country"> Country </label>
@@ -156,7 +174,9 @@ export default function Quiz({ questions, handleSubmit, countries}){
       </tbody>
     </table>
     {end == questions.length ?
-    <input type="submit" onClick={function(e){
+    <div>
+    <img src="/Pixel-arrow-fixed.png" className={styles.prevButton} onClick={handlePrevious}></img>
+    <img src="/Submit.png" className={styles.submitButton} onClick={function(e){
       state.answers["Nick"] = state.Nick;
       state.answers["Age"] = state.Age;
       state.answers["Country"] = state.Country;
@@ -164,10 +184,11 @@ export default function Quiz({ questions, handleSubmit, countries}){
       handleSubmit(e,state.answers)
     }
     } />
+    </div>
     :
     <div>
-    <button type="button" onClick={handlePrevious}>Previous</button>
-    <button type="button" onClick={handleNext}>Next</button>
+    <img src="/Pixel-arrow-fixed.png" className={styles.prevButton} onClick={handlePrevious}></img>
+    <img src="/Pixel-arrow-fixed.png" className={styles.nextButton}  onClick={handleNext}></img>
   </div>
 }
 </div>

@@ -1,13 +1,14 @@
 .App {
   text-align: center;
-  font-family: "Comic Neue", cursive;
+  font-family: 'Aldrich', sans-serif;
+  background-color: #E7E7E7ff;
 }
 .personalityForm{
-  margin-top:30vw;
-  background-color: #F9FBF2;
+  margin-top:77vh;
+  background-color: #E7E7E7ff;
 }
 .background{
-  background-color: #F9FBF2;
+  background-color: #E7E7E7ff;
   text-align: center;
   z-index: -2;
 }
@@ -47,22 +48,24 @@
   left: 0;
   margin-top:2.5%;
   font-size: 20px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
 }
 .personalityForm table {
-  font-family: 'Comic Neue', cursive;
+  font-family: 'Aldrich', sans-serif;
   margin-top: 2%;
 }
 .formInput{
   display: inline;
   margin-right: 2%;
   margin-left: 2%;
-  margin-top: 5%;
+  margin-top: 10%;
 }
 
 .quizTable{
   width: 50%;
   position: relative;
-  border-spacing: 70px 20px;
+  border-spacing: 90px 20px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -130,4 +133,31 @@
 .personalityForm .tableData{
   position: relative;
   top:20%;
+}
+
+/* Next and Previous Button Styles */
+.prevButton{
+  width: 70px;
+  transform: rotate(180deg);
+  margin-right: 20%;
+  margin-bottom: 5%;
+  cursor: pointer;
+}
+.nextButton{
+  width: 70px;
+  margin-left: 20%;
+  margin-bottom: 5%;
+  cursor: pointer;
+}
+.nextButton:hover{
+    cursor: pointer;
+}
+.prevButton:hover{
+    cursor: pointer;
+}
+.submitButton{
+  width: 125px;
+  margin-left: 20%;
+  margin-bottom: 5%;
+  cursor: pointer;
 }
